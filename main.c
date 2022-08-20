@@ -3,29 +3,15 @@
 #include <stdlib.h>
 #include <windows.h>
 
+// TODO: study arrays in C and why writing to an array of strings could overwrite other indexes.
+
+void list_files_in_directory(char* diretory, char* file_extension);
 char* get_file_content(char* filepath);
-void list_txt_files_in_directory(char* diretory, char* list_of_files[5]);
+
+int MAX_PATH_SIZE = 2048;
 
 int main(void) {
-    char* list_of_files[5];
-
-    list_of_files[0] = NULL;
-    list_of_files[1] = NULL;
-    list_of_files[2] = NULL;
-    list_of_files[3] = NULL;
-    list_of_files[4] = NULL;
-    
-    list_txt_files_in_directory("D:/repos/Findin CLI", list_of_files);
-
-    for (int i = 0; i < 5; i++) {
-        char* file_content_buffer = get_file_content(list_of_files[i]);
-
-        if (!file_content_buffer) continue;
-
-        printf("[%s]: %s\n", list_of_files[i], file_content_buffer);
-        
-        free(file_content_buffer);
-    }
+    list_files_in_directory("D:/repos/Findin CLI", ".txt");
 
     return EXIT_SUCCESS;
 }
@@ -60,15 +46,19 @@ char* get_file_content(char* filepath) {
     return buffer;
 }
 
-void list_txt_files_in_directory(char* directory, char* list_of_files[5]) {
+// This method prints out the paths and their content to STDOUT.
+// It takes a directory that cannot be NULL and a file_extension that,
+// if NULL, a wildcard search is done.
+void list_file_content_in_stdout(char* directory, char *file_extension) {
+    // TODO: make this function return an array of structs in heap that contains the
+    // file path and its content. Print it out using another function.
+
     WIN32_FIND_DATA fdFile;
     HANDLE hFind = NULL;
 
-    char path[2048];
+    char path[MAX_PATH_SIZE];
 
-    int idx = 0;
-
-    sprintf(path, "%s\\*.txt", directory);
+    sprintf(path, "%s\\*.txt", directory, file_extension);
 
     if ((hFind = FindFirstFile(path, &fdFile)) == INVALID_HANDLE_VALUE) {
         printf("Path not found [%s]\n", directory);
@@ -82,11 +72,14 @@ void list_txt_files_in_directory(char* directory, char* list_of_files[5]) {
             if (fdFile.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
                 printf("Directory:  %s\n", path);
             } else {
-                list_of_files[idx] = path;
-                idx++;
+                char *file_content = get_file_content(path);
+
+                if (file_content != NULL) {
+                    printf("[%s]: \n%s\n", path, file_content);
+                    free(file_content);
+                }
             }
         }
-
     } while (FindNextFile(hFind, &fdFile));
 
     FindClose(hFind);
