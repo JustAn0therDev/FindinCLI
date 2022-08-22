@@ -5,13 +5,14 @@
 
 // TODO: study arrays in C and why writing to an array of strings could overwrite other indexes.
 
-void list_files_in_directory(char* diretory, char* file_extension);
+void search_and_print_file_content(char* diretory, char* file_extension);
 char* get_file_content(char* filepath);
+void print_formatted_file_content(const char *path, const char *content);
 
 int MAX_PATH_SIZE = 2048;
 
 int main(void) {
-    list_files_in_directory("D:/repos/Findin CLI", ".txt");
+    search_and_print_file_content("D:/repos/Findin CLI", ".txt");
 
     return EXIT_SUCCESS;
 }
@@ -49,7 +50,7 @@ char* get_file_content(char* filepath) {
 // This method prints out the paths and their content to STDOUT.
 // It takes a directory that cannot be NULL and a file_extension that,
 // if NULL, a wildcard search is done.
-void list_file_content_in_stdout(char* directory, char *file_extension) {
+void search_and_print_file_content(char* directory, char *file_extension) {
     // TODO: make this function return an array of structs in heap that contains the
     // file path and its content. Print it out using another function.
 
@@ -75,7 +76,7 @@ void list_file_content_in_stdout(char* directory, char *file_extension) {
                 char *file_content = get_file_content(path);
 
                 if (file_content != NULL) {
-                    printf("[%s]: \n%s\n", path, file_content);
+                    print_formatted_file_content(path, file_content);
                     free(file_content);
                 }
             }
@@ -83,4 +84,10 @@ void list_file_content_in_stdout(char* directory, char *file_extension) {
     } while (FindNextFile(hFind, &fdFile));
 
     FindClose(hFind);
+}
+
+void print_formatted_file_content(const char *path, const char *content) {
+    char buffer[4000];
+    sprintf(buffer, "[%s]: \n%s", path, content);
+    printf("%s\n", buffer);
 }
