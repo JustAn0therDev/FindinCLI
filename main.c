@@ -3,25 +3,23 @@
 #include <stdlib.h>
 #include <windows.h>
 #include "main_functions.h"
-#include "file_information.h"
-#include "file_information_node.h"
 #include "file_search_utils.h"
+#include "file_information_node.h"
+#include "file_information.h"
+#include "result.h"
 
 // TODO: A string should not have a max size; instead,
 // any variable memory allocation should use realloc.
-
-// TODO: change most char readings for wchar_t.
-const int MAX_STRING_SIZE = 2048;
 
 int main(int argc, char *argv[]) {
     // The extension must have a search pattern, with the following format:
     // ".txt", ".c", ".cs" etc.
     char *extension = NULL;
-    // The search can have any size and contain any type of character (TODO: change most char reading for wchar_t).
+    // The search can have any size and contain any type of character (TODO: change most char readings for wchar_t).
     char *search = NULL;
 
     if (argc == 1) {
-        printf("Cannot invoke program without arguments.\n");
+        printf("Cannot invoke program without an extension argument, e.g. '.txt'.\n");
         return EXIT_FAILURE;
     }
 
@@ -30,34 +28,37 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    extension = malloc(sizeof(char) * (strlen(argv[1]) + 1));
+    extension = (char*)malloc(sizeof(char) * (strlen(argv[1]) + 1));
     strcpy(extension, "*");
     strcat(extension, argv[1]);
 
-    search = malloc(sizeof(char) * strlen(argv[2]));
+    search = (char*)malloc(sizeof(char) * strlen(argv[2]));
     strcpy(search, argv[2]);
 
     // TODO: get current directory
-    struct file_information_node *list = get_file_information_linked_list("D:/repos/Findin CLI", extension, search);
+    struct result *result = get_file_information_linked_list("D:\\repos\\PokemonAdventureGame\\PokemonAdventureGame\\Trainers", extension, search);
 
     int idx = 0;
 
-    if (list == NULL) {
+    if (result == NULL) {
         printf("No matches found for '%s'\n", search);
         free(search);
         return EXIT_SUCCESS;
     }
 
-    while (list->next != NULL) {
+    while (result->list->next != NULL) {
+        print_formatted_file_match(result->list->value);
+        result->list = result->list->next;
         idx++;
-        
-        print_formatted_file_content(list->value->path, list->value->file_content);
-        list = list->next;
     }
 
-    free_file_information_list_from_top_to_bottom(list);
+    printf("%i occurrences found in %i files\n", result->total_occurrences, idx);
 
+    free_file_information_list_from_top_to_bottom(result->list);
+
+    free(extension);
     free(search);
+    free(result);
     
     return EXIT_SUCCESS;
 }
@@ -77,7 +78,7 @@ char* get_file_content(char* filepath) {
     size_t length = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    char *buffer = malloc(length);
+    char *buffer = (char*)calloc(sizeof(char), length);
 
     if (!buffer) {
         return NULL;
@@ -92,18 +93,22 @@ char* get_file_content(char* filepath) {
     return buffer;
 }
 
-// This method returns a doubly linked list containing all paths and file content of each file.
+// This method returns a result struct containing the total occurrences found and a
+// doubly linked list containing all paths and file content of each file.
 // It accepts the following arguments: 
 // Directory to look for (char*), the file extension to look for (char*) and the search (char*)
-struct file_information_node *get_file_information_linked_list(char* directory, char *extension, char* search) {
+struct result *get_file_information_linked_list(char* directory, char *extension, char* search) {
     WIN32_FIND_DATA fdFile;
     HANDLE hFind = NULL;
 
-    struct file_information_node *first_node = (struct file_information_node*)malloc(sizeof(struct file_information_node));
+    struct result *result = (struct result*)malloc(sizeof(struct result));
+    result->total_occurrences = 0;
+    result->list = (struct file_information_node*)malloc(sizeof(struct file_information_node));
+    
     struct file_information_node *current_node = NULL;
 
-    first_node->previous = NULL;
-    current_node = first_node;
+    result->list->previous = NULL;
+    current_node = result->list;
 
     char path[2048];
 
@@ -127,11 +132,12 @@ struct file_information_node *get_file_information_linked_list(char* directory, 
                     int occurrences = get_number_of_substring_occurrences(file_content, search);
 
                     if (occurrences > 0) {
+                        result->total_occurrences += occurrences;
                         current_node->value = (struct file_information*)malloc(sizeof(struct file_information));
                         
-                        current_node->value->path = (char*)malloc(sizeof(char) * MAX_STRING_SIZE);
-                        current_node->value->file_content = (char*)malloc(sizeof(char) * MAX_STRING_SIZE);
-
+                        current_node->value->path = (char*)malloc(sizeof(char) * strlen(path));
+                        current_node->value->file_content = (char*)malloc(sizeof(char) * strlen(file_content));
+                        
                         strcpy(current_node->value->path, path);
                         strcpy(current_node->value->file_content, file_content);
                         
@@ -147,18 +153,21 @@ struct file_information_node *get_file_information_linked_list(char* directory, 
 
     FindClose(hFind);
     
-    if (first_node->value == NULL) {
-        free(first_node);
-        first_node = NULL;
+    if (result->list->value == NULL) {
+        free(result->list);
+        result->list = NULL;
     } else {
         current_node->next = NULL;
     }
 
-    return first_node;
+    return result;
 }
 
-void print_formatted_file_content(const char *path, const char *content) {
-    char buffer[4000];
-    sprintf(buffer, "[%s]: \n%s", path, content);
-    printf("%s\n", buffer);
+void print_formatted_file_match(struct file_information *file_information) {
+    if (file_information == NULL) return;
+    
+    printf("[%s]\n%s", 
+            file_information->path, 
+            file_information->file_content
+            );
 }
