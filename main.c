@@ -8,9 +8,6 @@
 #include "file_information.h"
 #include "result.h"
 
-// TODO: A string should not have a max size; instead,
-// any variable memory allocation should use realloc.
-
 int main(int argc, char *argv[]) {
     // The extension must have a search pattern, with the following format:
     // ".txt", ".c", ".cs" etc.
@@ -36,7 +33,7 @@ int main(int argc, char *argv[]) {
     strcpy(search, argv[2]);
 
     // TODO: get current directory
-    struct result *result = get_file_information_linked_list("D:\\repos\\PokemonAdventureGame\\PokemonAdventureGame\\Trainers", extension, search);
+    struct result *result = get_file_information_linked_list("D:\\repos\\PokemonAdventureGame\\PokemonAdventureGame\\Pokemon", extension, search);
 
     int idx = 0;
 
@@ -47,12 +44,12 @@ int main(int argc, char *argv[]) {
     }
 
     while (result->list->next != NULL) {
-        print_formatted_file_match(result->list->value);
+        print_formatted_file_match(result->list->file_information);
         result->list = result->list->next;
         idx++;
     }
 
-    printf("%i occurrences found in %i files\n", result->total_occurrences, idx);
+    printf("\n%i occurrences found in %i files\n", result->total_occurrences, idx);
 
     free_file_information_list_from_top_to_bottom(result->list);
 
@@ -127,25 +124,33 @@ struct result *get_file_information_linked_list(char* directory, char *extension
                 char *file_content = get_file_content(path);
 
                 if (file_content != NULL) {
-                    // TODO: this should return more information or the search should be made 
-                    // for each line (strtok?)
-                    int occurrences = get_number_of_substring_occurrences(file_content, search);
+                    int line_number = 1;
+                    char *token = strtok(file_content, "\n");
 
-                    if (occurrences > 0) {
-                        result->total_occurrences += occurrences;
-                        current_node->value = (struct file_information*)malloc(sizeof(struct file_information));
-                        
-                        current_node->value->path = (char*)malloc(sizeof(char) * strlen(path));
-                        current_node->value->file_content = (char*)malloc(sizeof(char) * strlen(file_content));
-                        
-                        strcpy(current_node->value->path, path);
-                        strcpy(current_node->value->file_content, file_content);
-                        
-                        current_node->next = (struct file_information_node*)malloc(sizeof(struct file_information_node));;
-                        struct file_information_node *temp_node = current_node;
-                        current_node = current_node->next;
-                        current_node->previous = temp_node;
-                    }
+                    // TODO: implement my own strtok in file_search_utils that reads
+                    // empty lines so that the program doesn't skip'em.
+                    // TODO 2: implement a trim(const char* input) function that removes any leading or trailing whitespace
+                    do {
+                        int occurrences = get_number_of_substring_occurrences(token, search);
+
+                        if (occurrences > 0) {
+                            result->total_occurrences += occurrences;
+                            current_node->file_information = (struct file_information*)malloc(sizeof(struct file_information));
+                            
+                            current_node->file_information->path = (char*)malloc(sizeof(char) * strlen(path));
+                            current_node->file_information->line_content = (char*)malloc(sizeof(char) * strlen(token));
+                            
+                            strcpy(current_node->file_information->path, path);
+                            strcpy(current_node->file_information->line_content, token);
+                            current_node->file_information->line_number = line_number;
+                            
+                            current_node->next = (struct file_information_node*)malloc(sizeof(struct file_information_node));;
+                            struct file_information_node *temp_node = current_node;
+                            current_node = current_node->next;
+                            current_node->previous = temp_node;
+                        }
+                        line_number++;
+                    } while (token = strtok(NULL, "\n"));
                 }
             }
         }
@@ -153,7 +158,7 @@ struct result *get_file_information_linked_list(char* directory, char *extension
 
     FindClose(hFind);
     
-    if (result->list->value == NULL) {
+    if (result->list->file_information == NULL) {
         free(result->list);
         result->list = NULL;
     } else {
@@ -166,8 +171,9 @@ struct result *get_file_information_linked_list(char* directory, char *extension
 void print_formatted_file_match(struct file_information *file_information) {
     if (file_information == NULL) return;
     
-    printf("[%s]\n%s", 
+    printf("[%s] line %i: %s\n", 
             file_information->path, 
-            file_information->file_content
+            file_information->line_number,
+            file_information->line_content
             );
 }

@@ -10,10 +10,10 @@
 #include "file_information.h"
 
 void free_file_information_node(struct file_information_node *list) {
-    if (list->value != NULL) {
-        free(list->value->path);
-        free(list->value->file_content);
-        free(list->value);
+    if (list->file_information != NULL) {
+        free(list->file_information->path);
+        free(list->file_information->line_content);
+        free(list->file_information);
         free(list);
     }
 }

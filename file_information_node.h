@@ -2,7 +2,7 @@
 #define FILE_INFORMATION_NODE_H
 
 struct file_information_node {
-    struct file_information *value;
+    struct file_information *file_information;
     struct file_information_node *next;
     struct file_information_node *previous;
 };
