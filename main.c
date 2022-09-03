@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
     // TODO: get current directory
     struct result *result = get_file_information_linked_list("D:\\repos\\PokemonAdventureGame\\PokemonAdventureGame\\Pokemon", extension, search);
 
-    if (result == NULL) {
+    if (result->list == NULL) {
         printf("No matches found for '%s'\n", search);
         free(search);
         return EXIT_SUCCESS;
