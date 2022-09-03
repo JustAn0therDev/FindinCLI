@@ -35,8 +35,6 @@ int main(int argc, char *argv[]) {
     // TODO: get current directory
     struct result *result = get_file_information_linked_list("D:\\repos\\PokemonAdventureGame\\PokemonAdventureGame\\Pokemon", extension, search);
 
-    int idx = 0;
-
     if (result == NULL) {
         printf("No matches found for '%s'\n", search);
         free(search);
@@ -46,10 +44,9 @@ int main(int argc, char *argv[]) {
     while (result->list->next != NULL) {
         print_formatted_file_match(result->list->file_information);
         result->list = result->list->next;
-        idx++;
     }
 
-    printf("\n%i occurrences found in %i files\n", result->total_occurrences, idx);
+    printf("\n%i occurrences found in %i files\n", result->total_occurrences, result->total_files);
 
     free_file_information_list_from_top_to_bottom(result->list);
 
@@ -100,6 +97,7 @@ struct result *get_file_information_linked_list(char* directory, char *extension
 
     struct result *result = (struct result*)malloc(sizeof(struct result));
     result->total_occurrences = 0;
+    result->total_files = 0;
     result->list = (struct file_information_node*)malloc(sizeof(struct file_information_node));
     
     struct file_information_node *current_node = NULL;
@@ -119,11 +117,13 @@ struct result *get_file_information_linked_list(char* directory, char *extension
     do {
         if (strcmp(fdFile.cFileName, ".") != 0 && strcmp(fdFile.cFileName, "..") != 0) {
             sprintf(path, "%s\\%s", directory, fdFile.cFileName);
+            int same_file_flag = 0;
 
             if (fdFile.dwFileAttributes ^ FILE_ATTRIBUTE_DIRECTORY) {
                 char *file_content = get_file_content(path);
 
                 if (file_content != NULL) {
+
                     int line_number = 1;
                     char *token = strtok(file_content, "\n");
 
@@ -134,6 +134,11 @@ struct result *get_file_information_linked_list(char* directory, char *extension
                         int occurrences = get_number_of_substring_occurrences(token, search);
 
                         if (occurrences > 0) {
+                            if (!same_file_flag) {
+                                result->total_files++;
+                                same_file_flag = 1;
+                            }
+                            
                             result->total_occurrences += occurrences;
                             current_node->file_information = (struct file_information*)malloc(sizeof(struct file_information));
                             
@@ -143,7 +148,6 @@ struct result *get_file_information_linked_list(char* directory, char *extension
                             strcpy(current_node->file_information->path, path);
                             strcpy(current_node->file_information->line_content, token);
                             current_node->file_information->line_number = line_number;
-                            
                             current_node->next = (struct file_information_node*)malloc(sizeof(struct file_information_node));;
                             struct file_information_node *temp_node = current_node;
                             current_node = current_node->next;

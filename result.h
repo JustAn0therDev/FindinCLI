@@ -5,6 +5,7 @@
 struct result {
 	struct file_information_node *list;
 	int total_occurrences;
+	int total_files;
 };
 
 #endif //RESULT_H
