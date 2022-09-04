@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
         result->list = result->list->next;
     }
 
-    printf("\n%i occurrences found in %i files\n", result->total_occurrences, result->total_files);
+    printf("%i occurrences found in %i files\n", result->total_occurrences, result->total_files);
 
     free_file_information_list_from_top_to_bottom(result->list);
 
@@ -129,7 +129,6 @@ struct result *get_file_information_linked_list(char* directory, char *extension
 
                     // TODO: implement my own strtok in file_search_utils that reads
                     // empty lines so that the program doesn't skip'em.
-                    // TODO 2: implement a trim(const char* input) function that removes any leading or trailing whitespace
                     do {
                         int occurrences = get_number_of_substring_occurrences(token, search);
 
@@ -143,10 +142,11 @@ struct result *get_file_information_linked_list(char* directory, char *extension
                             current_node->file_information = (struct file_information*)malloc(sizeof(struct file_information));
                             
                             current_node->file_information->path = (char*)malloc(sizeof(char) * strlen(path));
-                            current_node->file_information->line_content = (char*)malloc(sizeof(char) * strlen(token));
+                            char* trimmed_token = trimstart(token);
+                            current_node->file_information->line_content = (char*)malloc(sizeof(char) * strlen(trimmed_token));
                             
                             strcpy(current_node->file_information->path, path);
-                            strcpy(current_node->file_information->line_content, token);
+                            strcpy(current_node->file_information->line_content, trimmed_token);
                             current_node->file_information->line_number = line_number;
                             current_node->next = (struct file_information_node*)malloc(sizeof(struct file_information_node));;
                             struct file_information_node *temp_node = current_node;
@@ -175,7 +175,10 @@ struct result *get_file_information_linked_list(char* directory, char *extension
 void print_formatted_file_match(struct file_information *file_information) {
     if (file_information == NULL) return;
     
-    printf("[%s] line %i: %s\n", 
+    // @Testing: Using two linebreaks for now, so it's better to read this way;
+    // but this is only experimental. If I end up thinking of a way to make this
+    // more readable, I'll change it.
+    printf("[%s] line %i: %s\n\n", 
             file_information->path, 
             file_information->line_number,
             file_information->line_content

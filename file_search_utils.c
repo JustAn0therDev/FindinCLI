@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 
 int get_number_of_char_occurrences(char *source, char char_to_look_for) {
 	int idx = 0;
@@ -37,4 +38,24 @@ int get_number_of_substring_occurrences(char *source, char* substring) {
 	}
 
 	return occurrences;
+}
+
+char* trimstart(const char* input) {
+	if (input == NULL)
+		return NULL;
+
+	char *input_ptr = (char*)input;
+
+	int index = 0;
+
+	while (*input_ptr == '\t' || *input_ptr == ' ' || *input_ptr == '\n' || *input_ptr == '\r') {
+		input_ptr++;
+		index++;
+	}
+
+	char *result = (char*)malloc(sizeof(char) * strlen(input_ptr));
+
+	strcpy(result, input_ptr);
+
+	return result;
 }
