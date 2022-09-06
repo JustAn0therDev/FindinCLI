@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
     strcpy(search, argv[2]);
 
     // TODO: get current directory
-    struct result *result = get_file_information_linked_list("D:\\repos\\Findin CLI", extension, search);
+    struct result *result = get_file_information_linked_list("D:\\repos\\PokemonAdventureGame\\PokemonAdventureGame\\Pokemon", extension, search);
 
     if (result->list == NULL) {
         printf("No matches found for '%s'.\n", search);
@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
         result->list = result->list->next;
     }
 
-    printf("%i occurrences found in %i files.\n", result->total_occurrences, result->total_files);
+    printf("\n%i occurrences found for '%s' in %i files.\n", result->total_occurrences, search, result->total_files);
 
     free_file_information_list_from_top_to_bottom(result->list);
 
@@ -199,11 +199,8 @@ struct result *get_file_information_linked_list(char* directory, char *extension
 
 void print_formatted_file_match(struct file_information *file_information) {
     if (file_information == NULL) return;
-    
-    // @Testing: Using two linebreaks for now, so it's better to read this way;
-    // but this is only experimental. If I end up thinking of a way to make this
-    // more readable, I'll change it.
-    printf("[%s] line %i: %s\n\n", 
+
+    printf("[%s] line %i: %s\n", 
             file_information->path, 
             file_information->line_number,
             file_information->line_content

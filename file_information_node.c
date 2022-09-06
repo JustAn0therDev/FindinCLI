@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 #include "file_information_node.h"
 #include "file_information.h"
 
@@ -18,6 +19,8 @@ void free_file_information_list_from_top_to_bottom(struct file_information_node 
         free_file_information_node(list);
         list = tmp;
     }
+
+    assert(list != NULL);
 
     free_file_information_node(list);
     free(list);
