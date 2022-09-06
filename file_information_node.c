@@ -5,6 +5,8 @@
 #include "file_information.h"
 
 void free_file_information_node(struct file_information_node *list) {
+    assert(list != NULL);
+
     if (list->file_information != NULL) {
         free(list->file_information->path);
         free(list->file_information->line_content);
@@ -19,8 +21,6 @@ void free_file_information_list_from_top_to_bottom(struct file_information_node 
         free_file_information_node(list);
         list = tmp;
     }
-
-    assert(list != NULL);
 
     free_file_information_node(list);
     free(list);
