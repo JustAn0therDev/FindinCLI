@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 #include <windows.h>
 #include "main_functions.h"
 #include "file_search_utils.h"
@@ -26,17 +27,21 @@ int main(int argc, char *argv[]) {
     }
 
     extension = (char*)malloc(sizeof(char) * (strlen(argv[1]) + 1));
+    assert(extension != NULL);
+    
     strcpy(extension, "*");
     strcat(extension, argv[1]);
 
     search = (char*)malloc(sizeof(char) * strlen(argv[2]));
+    assert(search != NULL);
+
     strcpy(search, argv[2]);
 
     // TODO: get current directory
-    struct result *result = get_file_information_linked_list("D:\\repos\\PokemonAdventureGame\\PokemonAdventureGame\\Pokemon", extension, search);
+    struct result *result = get_file_information_linked_list("D:\\repos\\Findin CLI", extension, search);
 
     if (result->list == NULL) {
-        printf("No matches found for '%s'\n", search);
+        printf("No matches found for '%s'.\n", search);
         free(search);
         return EXIT_SUCCESS;
     }
@@ -46,7 +51,7 @@ int main(int argc, char *argv[]) {
         result->list = result->list->next;
     }
 
-    printf("%i occurrences found in %i files\n", result->total_occurrences, result->total_files);
+    printf("%i occurrences found in %i files.\n", result->total_occurrences, result->total_files);
 
     free_file_information_list_from_top_to_bottom(result->list);
 
@@ -72,7 +77,9 @@ char* get_file_content(char* filepath) {
     size_t length = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    char *buffer = (char*)calloc(sizeof(char), length);
+    char *buffer = (char*)malloc(sizeof(char) * length);
+
+    assert(buffer != NULL);
 
     if (!buffer) {
         return NULL;
@@ -96,9 +103,13 @@ struct result *get_file_information_linked_list(char* directory, char *extension
     HANDLE hFind = NULL;
 
     struct result *result = (struct result*)malloc(sizeof(struct result));
+    assert(result != NULL);
+
     result->total_occurrences = 0;
     result->total_files = 0;
+
     result->list = (struct file_information_node*)malloc(sizeof(struct file_information_node));
+    assert(result->list != NULL);
     
     struct file_information_node *current_node = NULL;
 
@@ -110,7 +121,7 @@ struct result *get_file_information_linked_list(char* directory, char *extension
     sprintf(path, "%s\\%s", directory, extension);
 
     if ((hFind = FindFirstFile(path, &fdFile)) == INVALID_HANDLE_VALUE) {
-        printf("Path not found [%s]\n", directory);
+        printf("No files with the extension [%s] were found in this directory.\n", extension);
         return NULL;
     }
 
@@ -127,7 +138,8 @@ struct result *get_file_information_linked_list(char* directory, char *extension
                     int line_number = 1;
                     char *token = strtok(file_content, "\n");
 
-                    // TODO: implement my own strtok in file_search_utils that reads
+                    // TODO: Implement a new function that gets all file contents in a directory recursively.
+                    // TODO 2: implement my own strtok in file_search_utils that reads
                     // empty lines so that the program doesn't skip'em.
                     do {
                         int occurrences = get_number_of_substring_occurrences(token, search);
@@ -139,22 +151,35 @@ struct result *get_file_information_linked_list(char* directory, char *extension
                             }
                             
                             result->total_occurrences += occurrences;
+                            
                             current_node->file_information = (struct file_information*)malloc(sizeof(struct file_information));
+                            assert(current_node->file_information != NULL);
                             
                             current_node->file_information->path = (char*)malloc(sizeof(char) * strlen(path));
+                            assert(current_node->file_information->path != NULL);
+                            
                             char* trimmed_token = trimstart(token);
+                            assert(trimmed_token != NULL);
+
                             current_node->file_information->line_content = (char*)malloc(sizeof(char) * strlen(trimmed_token));
                             
                             strcpy(current_node->file_information->path, path);
                             strcpy(current_node->file_information->line_content, trimmed_token);
+
                             current_node->file_information->line_number = line_number;
-                            current_node->next = (struct file_information_node*)malloc(sizeof(struct file_information_node));;
+                            
+                            current_node->next = (struct file_information_node*)malloc(sizeof(struct file_information_node));
+                            assert(current_node->next != NULL);
+
                             struct file_information_node *temp_node = current_node;
                             current_node = current_node->next;
                             current_node->previous = temp_node;
                         }
+
                         line_number++;
                     } while (token = strtok(NULL, "\n"));
+
+                    free(file_content);
                 }
             }
         }

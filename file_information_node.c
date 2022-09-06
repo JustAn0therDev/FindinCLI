@@ -1,12 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-
-#ifndef FILE_INFORMATION_NODE_H
-
 #include "file_information_node.h"
-
-#endif
-
 #include "file_information.h"
 
 void free_file_information_node(struct file_information_node *list) {
