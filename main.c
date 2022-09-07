@@ -37,8 +37,13 @@ int main(int argc, char *argv[]) {
 
     strcpy(search, argv[2]);
 
-    // TODO: get current directory
-    struct result *result = get_file_information_linked_list("D:\\repos\\PokemonAdventureGame\\PokemonAdventureGame\\Pokemon", extension, search);
+    int required_buffer_size = GetCurrentDirectoryA(0, NULL);
+
+    char* buffer = (char*)malloc(sizeof(char) * (required_buffer_size + 1));
+
+    int allocated_buffer_size = GetCurrentDirectoryA(required_buffer_size, buffer);
+
+    struct result *result = get_file_information_linked_list(buffer, extension, search);
 
     if (result->list == NULL) {
         printf("No matches found for '%s'.\n", search);
