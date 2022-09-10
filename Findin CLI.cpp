@@ -7,7 +7,7 @@
 const std::string DEFAULT_COLORS_TERMINAL_INSTRUCTION = "\033[0m";
 const std::string GREEN_COLORS_TERMINAL_INSTRUCTION = "\033[32m";
 const std::string RED_COLORS_TERMINAL_INSTRUCTION = "\033[31m";
-const std::string BLUE_COLORS_TERMINAL_INSTRUCTION = "\033[34m";
+const std::string YELLOW_COLORS_TERMINAL_INSTRUCTION = "\033[33m";
 
 std::string trimstart(std::string input) {
     std::string output;
@@ -76,9 +76,6 @@ int main(int argc, char **argv)
 
         size_t line_count = 0;
 
-        // TODO: Maybe highlight the substring encountered with
-        // a different color?
-
         while (myfile) {
             std::getline(myfile, line);
 
@@ -88,20 +85,40 @@ int main(int argc, char **argv)
 
             bool first_occurrence_in_line = true;
 
-            while ((index = trimmed_line.find(search, index)) != std::string::npos) {
-                if (first_occurrence_in_line) {
-                    std::cout << "[" << entry.path() << "] on line " << line_count << ": ";
-                    write_occurrence_to_stdout(trimmed_line, search, index);
-                    std::cout << "\n";
-                    first_occurrence_in_line = false;
-                }
+            if (trimmed_line.find(search, index) != std::string::npos) {
+                std::cout << "[" << entry.path() << "] on line " << line_count << ": ";
+                size_t outer_index = 0;
 
-                total_occurrences++;
-                index += search.length();
+                while (outer_index <= trimmed_line.length()) {
+                    if ((index = trimmed_line.find(search, index)) != std::string::npos) {
+                        if (outer_index == index) {
+                            const std::string& highlight_color = first_occurrence_in_line ? GREEN_COLORS_TERMINAL_INSTRUCTION : YELLOW_COLORS_TERMINAL_INSTRUCTION;
+                            std::cout << highlight_color;
+                        }
+                        else if ((outer_index - index) == search.length()) {
+                            std::cout << DEFAULT_COLORS_TERMINAL_INSTRUCTION;
+                            total_occurrences++;
+                            index += search.length();
+                            first_occurrence_in_line = false;
+                        }
+                    }
+
+                    if (outer_index < trimmed_line.length()) {
+                        std::cout << trimmed_line[outer_index];
+                    }
+
+                    outer_index++;
+                }
+                
+                std::cout << "\n";
             }
+
+            std::cout << DEFAULT_COLORS_TERMINAL_INSTRUCTION;
 
             line_count++;
         }
+
+        std::cout << DEFAULT_COLORS_TERMINAL_INSTRUCTION;
 
         total_files_searched++;
     }
