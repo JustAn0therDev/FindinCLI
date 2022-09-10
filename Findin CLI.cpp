@@ -44,10 +44,8 @@ void write_occurrence_to_stdout(std::string& occurrence, std::string& substr, si
 
 int main(int argc, char **argv)
 {
-    // TODO: get the current path in the future
-    //std::filesystem::path current_path = std::filesystem::current_path();
+    std::filesystem::path current_path = std::filesystem::current_path();
 
-    std::filesystem::path current_path = std::filesystem::path("D:\\repos");
 
     size_t total_files_searched = 0;
     size_t total_occurrences = 0;
@@ -117,8 +115,6 @@ int main(int argc, char **argv)
 
             line_count++;
         }
-
-        std::cout << DEFAULT_COLORS_TERMINAL_INSTRUCTION;
 
         total_files_searched++;
     }
