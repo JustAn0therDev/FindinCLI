@@ -1,6 +1,6 @@
-#include <iostream>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <stdlib.h>
 #include <string>
 
@@ -9,7 +9,7 @@ const std::string GREEN_COLORS_TERMINAL_INSTRUCTION = "\033[32m";
 const std::string RED_COLORS_TERMINAL_INSTRUCTION = "\033[31m";
 const std::string YELLOW_COLORS_TERMINAL_INSTRUCTION = "\033[33m";
 
-std::string trimstart(std::string input) {
+std::string trimstart(std::string& input) {
     std::string output;
 
     bool in_initial_whitespaces = true;
@@ -18,28 +18,12 @@ std::string trimstart(std::string input) {
         if (in_initial_whitespaces && (ch == '\t' || ch == '\n' || ch == '\r' || ch == ' ')) {
             continue;
         }
-        else {
-            in_initial_whitespaces = false;
-            output.push_back(ch);
-        }
+
+        in_initial_whitespaces = false;
+        output.push_back(ch);
     }
 
     return output;
-}
-
-void write_occurrence_to_stdout(std::string& occurrence, std::string& substr, size_t occ_index) {
-    size_t idx = 0;
-    for (const auto& ch : occurrence) {
-        if (idx == occ_index) {
-            std::cout << GREEN_COLORS_TERMINAL_INSTRUCTION;
-        }
-        else if ((idx - occ_index) == substr.length()) {
-            std::cout << DEFAULT_COLORS_TERMINAL_INSTRUCTION;
-        }
-
-        std::cout << ch;
-        idx++;
-    }
 }
 
 int main(int argc, char **argv)
