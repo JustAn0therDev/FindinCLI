@@ -44,9 +44,6 @@ void write_occurrence_to_stdout(std::string& occurrence, std::string& substr, si
 
 int main(int argc, char **argv)
 {
-    std::filesystem::path current_path = std::filesystem::current_path();
-
-
     size_t total_files_searched = 0;
     size_t total_occurrences = 0;
 
@@ -62,6 +59,8 @@ int main(int argc, char **argv)
 
     std::string extension = argv[1];
     std::string search = argv[2];
+
+    std::filesystem::path current_path = std::filesystem::current_path();
 
     for (const auto& entry : std::filesystem::recursive_directory_iterator(current_path)) {
         if (entry.path().extension() != extension) {
