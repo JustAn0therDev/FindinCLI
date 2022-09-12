@@ -51,14 +51,14 @@ int main(int argc, char **argv)
             continue;
         }
 
-        std::ifstream myfile(entry.path());
+        std::ifstream current_file(entry.path());
         
         std::string line;
 
         size_t line_count = 0;
 
-        while (myfile) {
-            std::getline(myfile, line);
+        while (current_file) {
+            std::getline(current_file, line);
 
             std::string trimmed_line = trimstart(line);
 
