@@ -9,7 +9,7 @@ const std::string GREEN_COLORS_TERMINAL_INSTRUCTION = "\033[32m";
 const std::string RED_COLORS_TERMINAL_INSTRUCTION = "\033[31m";
 const std::string YELLOW_COLORS_TERMINAL_INSTRUCTION = "\033[33m";
 
-std::string trimstart(std::string& input) {
+const std::string trimstart(const std::string& input) {
     std::string output;
 
     bool in_initial_whitespaces = true;
@@ -41,10 +41,10 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    std::string extension = argv[1];
-    std::string search = argv[2];
+    const std::string extension = argv[1];
+    const std::string search = argv[2];
 
-    std::filesystem::path current_path = std::filesystem::current_path();
+    const std::filesystem::path current_path = std::filesystem::current_path();
 
     for (const auto& entry : std::filesystem::recursive_directory_iterator(current_path)) {
         if (entry.path().extension() != extension) {
@@ -60,7 +60,7 @@ int main(int argc, char **argv)
         while (current_file) {
             std::getline(current_file, line);
 
-            std::string trimmed_line = trimstart(line);
+            const std::string trimmed_line = trimstart(line);
 
             size_t index = 0;
 
@@ -68,15 +68,15 @@ int main(int argc, char **argv)
 
             if (trimmed_line.find(search, index) != std::string::npos) {
                 std::cout << "[" << entry.path() << "] on line " << line_count << ": ";
-                size_t outer_index = 0;
+                size_t inner_index = 0;
 
-                while (outer_index <= trimmed_line.length()) {
+                while (inner_index <= trimmed_line.length()) {
                     if ((index = trimmed_line.find(search, index)) != std::string::npos) {
-                        if (outer_index == index) {
+                        if (inner_index == index) {
                             const std::string& highlight_color = first_occurrence_in_line ? GREEN_COLORS_TERMINAL_INSTRUCTION : YELLOW_COLORS_TERMINAL_INSTRUCTION;
                             std::cout << highlight_color;
                         }
-                        else if ((outer_index - index) == search.length()) {
+                        else if ((inner_index - index) == search.length()) {
                             std::cout << DEFAULT_COLORS_TERMINAL_INSTRUCTION;
                             total_occurrences++;
                             index += search.length();
@@ -84,11 +84,11 @@ int main(int argc, char **argv)
                         }
                     }
 
-                    if (outer_index < trimmed_line.length()) {
-                        std::cout << trimmed_line[outer_index];
+                    if (inner_index < trimmed_line.length()) {
+                        std::cout << trimmed_line[inner_index];
                     }
 
-                    outer_index++;
+                    inner_index++;
                 }
                 
                 std::cout << "\n";
