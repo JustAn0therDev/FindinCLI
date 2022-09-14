@@ -9,7 +9,9 @@ const std::string GREEN_COLORS_TERMINAL_INSTRUCTION = "\033[32m";
 const std::string RED_COLORS_TERMINAL_INSTRUCTION = "\033[31m";
 const std::string YELLOW_COLORS_TERMINAL_INSTRUCTION = "\033[33m";
 
-const std::string trimstart(const std::string& input) {
+static bool ignore_case_toggled = false;
+
+const std::string trim_start(const std::string& input) {
     std::string output;
 
     bool in_initial_whitespaces = true;
@@ -24,6 +26,20 @@ const std::string trimstart(const std::string& input) {
     }
 
     return output;
+}
+
+const std::string get_string_modified_by_options(const std::string& trimmed_line) {
+    std::string uppercase_line;
+
+    for (int i = 0; i < trimmed_line.length(); i++) {
+        uppercase_line.push_back(toupper(trimmed_line[i]));
+    }
+
+    return uppercase_line;
+}
+
+const std::string get_same_string(const std::string& trimmed_line) {
+    return trimmed_line;
 }
 
 int main(int argc, char **argv)
@@ -42,7 +58,22 @@ int main(int argc, char **argv)
     }
 
     const std::string extension = argv[1];
-    const std::string search = argv[2];
+    std::string search = argv[2];
+
+    const std::string(*get_modified_line_for_comparison)(const std::string&);
+
+    if (argc == 4) {
+        std::string option = argv[3];
+        if (option == "-i") {
+            ignore_case_toggled = true;
+            for (char& ch : search) ch = toupper(ch);
+        }
+
+        get_modified_line_for_comparison = get_string_modified_by_options;
+    }
+    else {
+        get_modified_line_for_comparison = get_same_string;
+    }
 
     const std::filesystem::path current_path = std::filesystem::current_path();
 
@@ -60,18 +91,20 @@ int main(int argc, char **argv)
         while (current_file) {
             std::getline(current_file, line);
 
-            const std::string trimmed_line = trimstart(line);
+            const std::string trimmed_line = trim_start(line);
+
+            std::string line_modified_for_comparison = get_modified_line_for_comparison(trimmed_line);
 
             size_t index = 0;
 
             bool first_occurrence_in_line = true;
 
-            if (trimmed_line.find(search, index) != std::string::npos) {
+            if (line_modified_for_comparison.find(search, index) != std::string::npos) {
                 std::cout << "[" << entry.path() << "] on line " << line_count << ": ";
                 size_t inner_index = 0;
 
-                while (inner_index <= trimmed_line.length()) {
-                    if ((index = trimmed_line.find(search, index)) != std::string::npos) {
+                while (inner_index <= line_modified_for_comparison.length()) {
+                    if ((index = line_modified_for_comparison.find(search, index)) != std::string::npos) {
                         if (inner_index == index) {
                             const std::string& highlight_color = first_occurrence_in_line ? GREEN_COLORS_TERMINAL_INSTRUCTION : YELLOW_COLORS_TERMINAL_INSTRUCTION;
                             std::cout << highlight_color;
@@ -84,14 +117,14 @@ int main(int argc, char **argv)
                         }
                     }
 
-                    if (inner_index < trimmed_line.length()) {
+                    if (inner_index < line_modified_for_comparison.length()) {
                         std::cout << trimmed_line[inner_index];
                     }
 
                     inner_index++;
                 }
                 
-                std::cout << "\n";
+                std::cout << "\n\n";
             }
 
             std::cout << DEFAULT_COLORS_TERMINAL_INSTRUCTION;
