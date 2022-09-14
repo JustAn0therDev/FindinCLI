@@ -11,8 +11,8 @@ const std::string YELLOW_COLORS_TERMINAL_INSTRUCTION = "\033[33m";
 
 static bool ignore_case_toggled = false;
 
-const std::string trim_start(const std::string& input) {
-    std::string output;
+const std::string* trim_start(const std::string& input) {
+    std::string *output = new std::string;
 
     bool in_initial_whitespaces = true;
 
@@ -22,24 +22,22 @@ const std::string trim_start(const std::string& input) {
         }
 
         in_initial_whitespaces = false;
-        output.push_back(ch);
+        output->push_back(ch);
     }
 
     return output;
 }
 
-const std::string get_string_modified_by_options(const std::string& trimmed_line) {
-    std::string uppercase_line;
+const std::string* get_string_modified_by_options(const std::string& trimmed_line) {
+    std::string *uppercase_line = new std::string;
 
-    for (int i = 0; i < trimmed_line.length(); i++) {
-        uppercase_line.push_back(toupper(trimmed_line[i]));
-    }
+    for (const auto& ch : trimmed_line) uppercase_line->push_back(toupper(ch));
 
     return uppercase_line;
 }
 
-const std::string get_same_string(const std::string& trimmed_line) {
-    return trimmed_line;
+const std::string* get_same_string(const std::string& trimmed_line) {
+    return &trimmed_line;
 }
 
 int main(int argc, char **argv)
@@ -60,10 +58,10 @@ int main(int argc, char **argv)
     const std::string extension = argv[1];
     std::string search = argv[2];
 
-    const std::string(*get_modified_line_for_comparison)(const std::string&);
+    const std::string*(*get_modified_line_for_comparison)(const std::string&);
 
     if (argc == 4) {
-        std::string option = argv[3];
+        std::string option = "-i";
         if (option == "-i") {
             ignore_case_toggled = true;
             for (char& ch : search) ch = toupper(ch);
@@ -91,20 +89,20 @@ int main(int argc, char **argv)
         while (current_file) {
             std::getline(current_file, line);
 
-            const std::string trimmed_line = trim_start(line);
+            const std::string* trimmed_line = trim_start(line);
 
-            std::string line_modified_for_comparison = get_modified_line_for_comparison(trimmed_line);
+            const std::string* line_modified_for_comparison = get_modified_line_for_comparison(*trimmed_line);
 
             size_t index = 0;
 
             bool first_occurrence_in_line = true;
 
-            if (line_modified_for_comparison.find(search, index) != std::string::npos) {
+            if (line_modified_for_comparison->find(search, index) != std::string::npos) {
                 std::cout << "[" << entry.path() << "] on line " << line_count << ": ";
                 size_t inner_index = 0;
 
-                while (inner_index <= line_modified_for_comparison.length()) {
-                    if ((index = line_modified_for_comparison.find(search, index)) != std::string::npos) {
+                while (inner_index <= line_modified_for_comparison->length()) {
+                    if ((index = line_modified_for_comparison->find(search, index)) != std::string::npos) {
                         if (inner_index == index) {
                             const std::string& highlight_color = first_occurrence_in_line ? GREEN_COLORS_TERMINAL_INSTRUCTION : YELLOW_COLORS_TERMINAL_INSTRUCTION;
                             std::cout << highlight_color;
@@ -117,8 +115,8 @@ int main(int argc, char **argv)
                         }
                     }
 
-                    if (inner_index < line_modified_for_comparison.length()) {
-                        std::cout << trimmed_line[inner_index];
+                    if (inner_index < line_modified_for_comparison->length()) {
+                        std::cout << (*trimmed_line)[inner_index];
                     }
 
                     inner_index++;
@@ -130,6 +128,9 @@ int main(int argc, char **argv)
             std::cout << DEFAULT_COLORS_TERMINAL_INSTRUCTION;
 
             line_count++;
+
+            delete line_modified_for_comparison;
+            delete trimmed_line;
         }
 
         total_files_searched++;
